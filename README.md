@@ -9,7 +9,7 @@ layer作为弹出框组件
 http://layer.layui.com/  
 https://github.com/sentsin/layer  
 
-fullcalendar组件
+fullcalendar组件  
 http://fullcalendar.io/  
 https://github.com/fullcalendar/fullcalendar  
 
