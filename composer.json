@@ -1,0 +1,19 @@
+{
+    "name" : "micsmart",
+    "description" : "this is a micro php framework",
+    "keywords" : ["framework"],
+    "license" : "MIT",
+    "type" : "project",
+    "authors" : [
+        {
+            "name" : "xs5816",
+            "email" : "xs5816@163.com"
+        }
+    ],
+    "require" : {
+        "php" :">=5.3.3"
+    },
+    "config" : {
+        "optimize-autoloader" : true
+    }
+}

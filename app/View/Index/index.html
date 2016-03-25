@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8' />
+<link href='./css/fullcalendar.min.css' rel='stylesheet' />
+<link href='./css/fullcalendar.print.css' rel='stylesheet' media='print' />
+<link href='./css/custom.css' rel='stylesheet' />
+<script src='./js/jquery.min.js'></script>
+<script src='./js/jquery-ui.min.js'></script>
+<script src='./js/moment.min.js'></script>
+<script src='./js/fullcalendar.min.js'></script>
+<script src='./js/zh-cn.js'></script>
+<script src='./js/layer/layer.js'></script>
+<style>
+.fcolor{
+    background:#f0f1f4;
+}
+</style>
+</head>
+<body>
+    <div id='wrap'>
+        <div id='external-events'>
+            <h4>组员列表</h4>
+            <volist name="users" id="user">
+            <div class='fc-event edit-user' data-id="{$user.id}">{$user.name}</div>
+            </volist>
+            <p>
+                <button class="add-user" id="add-user">添加成员</button>
+            </p>
+        </div>
+        <div id='calendar'></div>
+        <input type="hidden" id="_id" value=""/>
+        <input type="hidden" id="_uid" value=""/>
+        <div style='clear:both'></div>
+    </div>
+    <script>
+
+    $(document).ready(function() {
+        layer.config({
+            extend: 'extend/layer.ext.js'
+        }); 
+            
+        $('#external-events .fc-event').each(function() {
+            $(this).data('event', {
+                title: $.trim($(this).text()), 
+                stick: true 
+            });
+
+            $(this).draggable({
+                zIndex: 999,
+                revert: true,
+                revertDuration: 0,
+            });
+        });
+        
+        function getNextDay(date){
+            var _date = new Date(date);
+            _date.setDate(_date.getDate() + 1);
+            _month = (_date.getMonth() + 1) < 10 ? '0' + (_date.getMonth() + 1) : (_date.getMonth() + 1);
+            _day = _date.getDate() < 10 ? '0' + _date.getDate() : _date.getDate();
+            var _nextday = _date.getFullYear() + '-' + _month + '-' + _day;
+            return _nextday;
+        }
+        
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month'
+            },
+            editable: true,
+            lang: 'zh-cn',
+            droppable: true,
+            disableDragging: true,
+            diableResizing: true,
+            weekends: true,
+            weekNumberCalculation: 'iso',
+            events: {
+                // 所有事件的初始化方法
+                url: 'index.php?m=index&c=getEvents',
+                error: function() {
+                    console.log('getEvents Error!');
+                }
+            },
+            drop: function( date, jsEvent, ui, resourceId ) {
+
+
+                var title = $(this).text();
+                var uid = $(this).attr('data-id');
+                // 添加一个事件的处理函数
+                var startday = date.format();
+                $.ajax({
+                    type : 'post',
+                    url : 'index.php?m=index&c=addEvent',
+                    data : {uid : uid, start : startday, end : getNextDay(date) }, 
+                    dataType : 'json',
+                    success : function(data){
+                        if(data.success == true){
+                            layer.msg('添加成功!', {icon: 1});
+                            // 移除此节点
+
+                        } else {
+                            layer.msg('添加失败!', {icon: 2});
+                        }
+                    }
+                });
+            },
+            dayClick: function(date, jsEvent, view, resourceObj) {
+                // 单击日历的处理函数
+                var this_layer = layer.open({
+                    type: 1,
+                    skin: 'layui-layer-dark', //样式类名
+                    title: '添加',
+                    closeBtn: 1, //不显示关闭按钮
+                    shift: 2,
+                    move: false,
+                    shadeClose: true, //开启遮罩关闭
+                    content: '<div style="padding:20px;"><form class="custom-form"><div class="custom-control-group"><label for="name" class="custom-2">用户名:　 </label><select class="custom-select custom-select-6" id="uid"><volist name="users" id="user"><option value="{$user.id}">{$user.name}</option></volist></select></div><div class="custom-control-group"><label for="name" class="custom-2">开始日期: </label><input class="custom-input custom-input-6" type="text" id="addstart" placeholder="" value=""/></div><div class="custom-control-group"><label for="name" class="custom-2">结束日期: </label><input class="custom-input custom-input-6" type="text" id="addend" placeholder="" value=""/></div></form><div class="pull-clear"><button class="custom-button custom-button-active pull-right" id="daycancel">取消</button><button class="custom-button custom-button-primary pull-right" id="dayadd">添加</button><div class="pull-clear"></div></div></div>'
+                });
+                $('#addstart').val(date.format());
+                $('#addend').val(getNextDay(date));
+                $('#daycancel').click(function(){
+                    layer.close(this_layer);
+                });
+                $('#dayadd').click(function(){
+                    var uid = $('#uid').val(),
+                        start = $('#addstart').val(),
+                        end = $('#addend').val();
+                    // 这里写添加的逻辑
+                    $.ajax({
+                        type : 'post',
+                        url : 'index.php?m=index&c=addEvent',
+                        data : {uid : uid, start : start, end : end}, 
+                        dataType : 'json',
+                        success : function(data){
+                            if(data.success == true){
+                                layer.close(this_layer);
+                                layer.msg('添加成功!', {icon: 1});
+                                $('#calendar').fullCalendar('refetchEvents');
+                            } else {
+                                layer.msg('添加失败!', {icon: 2});
+                            }
+                        }
+                    });
+                });
+            },
+            eventClick: function(calEvent, jsEvent, view) {
+                // 这里是点击日程的处理函数
+                if(!calEvent.id){
+                    layer.msg("新添加的日程需要重新刷新页面后才可修改", {icon: 2});
+                    return false;
+                }
+                var title = calEvent.title;
+                var isstart = calEvent.start == null;
+                var isend = calEvent.end == null;
+                var startday = null;
+                var endday = null;
+                if(!isstart){
+                    startday = calEvent.start.format();
+                }
+                if(!isend){
+                    endday = calEvent.end.format();
+                }
+                
+                var this_layer = layer.open({
+                    type: 1,
+                    skin: 'layui-layer-dark', //样式类名
+                    title: '修改',
+                    closeBtn: 1, //不显示关闭按钮
+                    shift: 2,
+                    move: false,
+                    shadeClose: true, //开启遮罩关闭
+                    content: '<div style="padding:20px;"><form class="custom-form"><div class="custom-control-group"><label for="name" class="custom-2">用户名:　 </label><select class="custom-select custom-select-6" id="edituid"><volist name="users" id="user"><option value="{$user.id}">{$user.name}</option></volist></select></div><div class="custom-control-group"><label for="name" class="custom-2">开始日期: </label><input class="custom-input custom-input-6" type="text" id="editstart" placeholder=""/></div><div class="custom-control-group"><label for="name" class="custom-2">结束日期: </label><input class="custom-input custom-input-6" type="text" id="editend" placeholder=""/></div></form><div class="pull-clear"><button class="custom-button custom-button-primary pull-left" id="e_del">删除</button><button class="custom-button custom-button-active pull-right" id="e_cancel">取消</button><button class="custom-button custom-button-primary pull-right" id="e_edit">修改</button><div class="pull-clear"></div></div></div>'
+                });
+                $('#edituid').val(calEvent.uid);
+                $('#editstart').val(startday);
+                if(!isend){
+                    $('#editend').val(endday);
+                } else {
+                    $('#editend').val(getNextDay(startday));
+                }
+                $('#e_cancel').click(function(){
+                    layer.close(this_layer);
+                });
+                
+                $('#e_del').click(function(){
+                    // 这里写删除的逻辑
+                    var con_layer = layer.confirm('是否删除', {
+                        btn: ['删除','取消'], //按钮
+                        title: '删除事件',
+                        shadeClose : true
+                    }, function(){
+                        // 这里写删除逻辑
+                        $.ajax({
+                            type : 'post',
+                            url : 'index.php?m=index&c=delEvent',
+                            data : {id : calEvent.id}, 
+                            dataType : 'json',
+                            success : function(data){
+                                if(data.success == true){
+                                    layer.close(this_layer);
+                                    layer.msg('删除成功!', {icon: 1});
+                                    // 这里需要重新加载
+                                    $('#calendar').fullCalendar('refetchEvents');
+                                } else {
+                                    layer.msg('删除失败!', {icon: 2});
+                                }
+                            }
+                        });
+                    }, function(){
+                        // 这里是取消
+                        layer.close(con_layer);
+                    });
+                });
+                $('#e_edit').click(function(){
+                    // 这里写更新的逻辑
+                    var uid = $('#edituid').val(),
+                        start = $('#editstart').val(),
+                        end = $('#editend').val();
+                        
+                    $.ajax({
+                        type : 'post',
+                        url : 'index.php?m=index&c=updateEvent',
+                        data : {id : calEvent.id, uid : uid, start : start, end : end },
+                        dataType : 'json',
+                        success : function(data){
+                            if(data.success == true){
+                                layer.close(this_layer);
+                                layer.msg('修改成功!', {icon: 1});
+                                $('#calendar').fullCalendar('refetchEvents');
+                            } else {
+                                layer.msg('修改失败!', {icon: 2});
+                            }
+                        }
+                    });
+                });
+            },
+            eventResize: function(event, delta, revertFunc, jsEvent, ui, view) {
+                // 这里是拖拽改变日期的时间跨度的处理函数
+                var id = event.id;
+                if(!id){
+                    layer.msg("新添加的日程需要重新刷新页面后才可修改", {icon: 2});
+                    revertFunc();
+                    return false;
+                }
+                var uid = event.uid;
+                var start = event.start.format();
+                var end = event.end.format();
+                
+                // 这里是更新
+                $.ajax({
+                    type : 'post',
+                    url : 'index.php?m=index&c=updateEvent',
+                    data : {id : id, uid : uid, start : start, end : end },
+                    dataType : 'json',
+                    success : function(data){
+                        if(data.success == true){
+                            layer.msg('修改成功!', {icon: 1});
+                            $('#calendar').fullCalendar('refetchEvents');
+                        } else {
+                            layer.msg('修改失败!', {icon: 2});
+                        }
+                    }
+                });
+            },
+            eventDrop: function(event, dayDelta, revertFunc) {
+                // 这里是拖拽改变日期的位置的处理函数
+                var id = event.id;
+                if(!id){
+                    layer.msg("新添加的日程需要重新刷新页面后才可修改", {icon: 2});
+                    revertFunc();
+                    return false;
+                }
+                var uid = event.uid;
+                var start = event.start.format();
+                var end = event.end.format();
+                
+                // 这里是更新
+                $.ajax({
+                    type : 'post',
+                    url : 'index.php?m=index&c=updateEvent',
+                    data : {id : id, uid : uid, start : start, end : end },
+                    dataType : 'json',
+                    success : function(data){
+                        if(data.success == true){
+                            layer.msg('修改成功!', {icon: 1});
+                            $('#calendar').fullCalendar('refetchEvents');
+                        } else {
+                            layer.msg('修改失败!', {icon: 2});
+                            revertFunc();       // 恢复原状
+                        }
+                    }
+                });
+            },
+            eventAfterRender: function(event, element, view){
+                $('.fc-sat').addClass('fcolor');
+                $('.fc-sun').addClass('fcolor');
+            }
+        });
+        
+
+        $('#add-user').click(function(){
+            layer.prompt({
+                title: '输入用户名',
+                shadeClose : true,
+                formType: 0 //prompt风格，支持0-2
+            }, function(content){
+                $.ajax({
+                    type : 'post',
+                    url : 'index.php?m=index&c=addUser',
+                    data : {name : content}, 
+                    dataType : 'json',
+                    success : function(data){
+                        if(data.success == true){
+                            layer.msg('添加成功!', {icon: 1});
+                        } else {
+                            layer.msg('添加失败!', {icon: 2});
+                        }
+                        // 添加成功后需要刷新列表
+                    }
+                });
+            });
+        });
+
+        $('.edit-user').click(function(){
+            var uid = $(this).attr('data-id');
+            layer.confirm('是否删除 [' + $(this).text() + '] ', {
+                btn: ['删除','取消'], //按钮
+                title: '删除成员',
+                shadeClose : true
+            }, function(){
+                // 这里写删除逻辑
+                $.ajax({
+                    type : 'post',
+                    url : 'index.php?m=index&c=delUser',
+                    data : {id : uid}, 
+                    dataType : 'json',
+                    success : function(data){
+                        if(data.success == true){
+                            layer.msg('删除成功!', {icon: 1});
+                        } else {
+                            layer.msg('删除失败!', {icon: 2});
+                        }
+                    }
+                });
+            }, function(){
+                // 这里是取消
+                layer.close();
+            });
+        });
+    });
+</script>
+</body>
+</html>

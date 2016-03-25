@@ -1,0 +1,134 @@
+body {
+    margin-top: 40px;
+    font-size: 14px;
+    font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+}
+#wrap {
+    width: 1100px;
+    margin: 0 auto;
+}
+    
+#external-events {
+    float: left;
+    width: 150px;
+    padding: 0 10px;
+    border: 1px solid #ccc;
+    background: #eee;
+    text-align: left;
+}
+    
+#external-events h4 {
+    font-size: 16px;
+    margin-top: 0;
+    padding-top: 1em;
+}
+    
+#external-events .fc-event {
+    margin: 10px 0;
+    cursor: pointer;
+    padding: 5px;
+}
+    
+#external-events p {
+    margin: 1.5em 0;
+    font-size: 11px;
+    color: #666;
+}
+#external-events p input {
+    margin: 0;
+    vertical-align: middle;
+}
+#calendar {
+    float: right;
+    width: 900px;
+}
+.add-user{
+    height: 28px;
+    line-height: 28px;
+    width:100%;
+    border: 1px #dedede solid;
+    border-radius: 2px;
+    cursor: pointer;
+    border-color: #4898d5;
+    background-color: #2e8ded;
+    color: #fff;
+}
+.pull-left{
+    float:left;
+}
+.pull-right{
+    float:right;
+}
+.pull-clear{
+    clear:both;
+}
+.custom-button{
+    height: 28px;
+    line-height: 28px;
+    margin: 0 6px;
+    padding: 0 15px;
+    border: 1px solid #dedede;
+    background-color: #f1f1f1;
+    color: #333;
+    border-radius: 2px;
+    font-weight: 400;
+    cursor: pointer;
+    outline:none;
+}
+.custom-button:hover{
+    opacity:.9;
+}
+.custom-button-primary{
+    border-color: #4898d5;
+    background-color: #2e8ded;
+    color: #fff;
+}
+.custom-button-cancel{
+    
+}
+.custom-input{
+    padding: .5em .6em;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 1px 3px #ddd;
+    border-radius: 4px;
+    vertical-align: middle;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    outline:none;
+}
+.custom-input:focus{
+    outline:0;
+    border-color:#129FEA
+}
+.custom-input-12{
+    width:100%;
+}
+.custom-select{
+    height: 2.25em;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    outline:none;
+    padding: .5em .6em;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 1px 3px #ddd;
+    border-radius: 4px;
+    vertical-align: middle;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.custom-select-6{
+    width:50%;
+}
+.custom-2{
+    width:20%;
+}
+.custom-control-group{
+    padding:8px 0;
+}
+.custom-form{
+    padding-bottom:10px;
+}
